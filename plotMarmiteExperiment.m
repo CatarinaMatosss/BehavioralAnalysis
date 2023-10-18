@@ -7,7 +7,13 @@
 % %%%%%%%%%%%%%%%%%%% load data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  
-t=table2array(MarmiteExperiment2new);
+
+folder='D:\data\' ;
+filename ='MarmiteExperiment2_new.xls';
+
+T = readtable(strcat(folder,filename));
+
+t =table2array(T);
 
 
 %%
@@ -101,27 +107,36 @@ endEmpty= percentageEmpty(30:32,:);
 endMarmite=percentageMarmite(30:32,:);
 endNPB=percentageNPB(30:32,:);
 
-meanendEmpty= mean(endEmpty,1);
-meanendMarmite= mean(endMarmite,1);
-meanendNPB= mean(endNPB,1);
+meanendEmpty= mean(endEmpty,1)';
+meanendMarmite= mean(endMarmite,1)';
+meanendNPB= mean(endNPB,1)';
 
 
-meanTogether = {meanendEmpty, meanendMarmite, meanendNPB};
-cattogether= {empty(1,:), Marmite(1,:), NPB(1,:)};
+meanTogether = joinUnevenVectors(meanendEmpty, meanendMarmite, meanendNPB);
+groupnames= char('Empty', 'Marmite', 'NPB');
+groupNames= cellstr(groupnames);
+
+meanTogetherNaN = meanTogether;
+
+meanTogether(meanTogetherNaN == 0) = NaN;
 
 figure
-violinplot(meanTogether,cattogether );
+vc = violinplot(meanTogether,groupNames,'Bandwidth' ,0.05);
 hold on
+
+ vc(1).ViolinColor= [0,0,255]./255;
+ vc(2).ViolinColor= [255,0,0]./255;
+ vc(3).ViolinColor= [0,255,255]./255;
+
 set(gca, 'XTick', 1:3, 'XTickLabels', {'Empty', 'Marmite', 'NPB'});
-ylabel('percentage of eaten rotifers');
-
-% scatter((1:1,meanendEmpty)
-
-% figure
-% scatterplot(1,c)
-% hold on
-% violinplot(2, meanendMarmite(1,:), 'col', 'r', 'linestyle', ':')
-% plot(3, meanendNPB(1,:), 'col', 'c', 'linestyle', ':')
+ylabel('Perc. of eaten rotifers');
+axis square
 
 
+%%
+%%%%%%%%%%%%%% Do stats %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+pEmptyMarmite = ranksum(meanTogether(:,1),meanTogether(:,2));
+pEmptyNPB = ranksum(meanTogether(:,1),meanTogether(:,3));
+pMarmiteNPB = ranksum(meanTogether(:,2),meanTogether(:,3));
